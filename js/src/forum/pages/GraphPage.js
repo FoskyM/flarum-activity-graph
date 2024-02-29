@@ -8,6 +8,7 @@ export default class AuthorizedPage extends UserPage {
   year = new Date().getFullYear().toString();
   graphData = null;
   graph = null;
+  resize_handler_bound = false;
   oninit(vnode) {
     super.oninit(vnode);
     this.loadUser(m.route.param('username'));
@@ -37,7 +38,7 @@ export default class AuthorizedPage extends UserPage {
     const graph_container = document.getElementById('activity-graph');
     if (!graph_container) return;
 
-    this.chart = this.chart || window.echarts.init(graph_container);
+    this.chart = this.chart || window.echarts.init(graph_container) ;
     this.chart.setOption({
       tooltip: {
         position: "top",
@@ -85,7 +86,14 @@ export default class AuthorizedPage extends UserPage {
         calendarIndex: 0,
         data: this.graphData
       }]
-    })
+    });
+
+    if (!this.resize_handler_bound) {
+      window.addEventListener('resize', () => {
+        this.chart.resize();
+      });
+      this.resize_handler_bound = true;
+    }
   }
   content() {
     let options = {};
