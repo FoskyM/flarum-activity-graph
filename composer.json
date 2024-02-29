@@ -16,7 +16,8 @@
         {
             "name": "FoskyM",
             "email": "i@fosky.top",
-            "role": "Developer"
+            "role": "Developer",
+            "homepage": "https://fosky.top"
         }
     ],
     "autoload": {
@@ -30,7 +31,7 @@
             "category": "",
             "icon": {
                 "name": "fas fa-chart-line",
-                "color": "",
+                "color": "#fff",
                 "backgroundColor": "#70abfa"
             }
         },
