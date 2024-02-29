@@ -4,3 +4,6 @@ foskym-activity-graph:
   forum:
     label:
       activity_graph: 活动图表
+      total_times: 这一年共 {total} 次
+      unit: 次
+      name_map: cn # 标签语言. 可查询 https://echarts.apache.org/zh/option.html#calendar.dayLabel.nameMap

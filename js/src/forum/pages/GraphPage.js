@@ -7,6 +7,7 @@ export default class AuthorizedPage extends UserPage {
   loading = true;
   year = new Date().getFullYear().toString();
   graphData = null;
+  total = 0;
   graph = null;
   resize_handler_bound = false;
   oninit(vnode) {
@@ -24,7 +25,9 @@ export default class AuthorizedPage extends UserPage {
       params: {user_id: this.user.id(), year: this.year},
     }).then(result => {
       this.loading = false;
-      this.graphData = result;
+      this.graphData = result.data;
+      this.total = result.total;
+      m.redraw();
       this.renderGraph();
     });
   }
@@ -44,7 +47,8 @@ export default class AuthorizedPage extends UserPage {
         position: "top",
         formatter: function(e) {
           return "<p>" + e.marker + e.data[0].substring(5) + " <b>" + e.data[1] +
-            ' ' + '次' + "</b></p>"
+            ' ' + app.translator.trans('foskym-activity-graph.forum.label.unit')
+            + "</b></p>"
         }
       },
       visualMap: {
@@ -70,11 +74,11 @@ export default class AuthorizedPage extends UserPage {
           }
         },
         dayLabel: {
-          nameMap: "cn",
+          nameMap: app.translator.trans('foskym-activity-graph.forum.label.name_map')[0],
           firstDay: 1
         },
         monthLabel: {
-          nameMap: "cn"
+          nameMap: app.translator.trans('foskym-activity-graph.forum.label.name_map')[0]
         },
         yearLabel: {
           show: !0
@@ -103,17 +107,20 @@ export default class AuthorizedPage extends UserPage {
     }
 
     return <div class="activity-graph-page">
-      <Select
-        options={
-          options
-        }
-        value={this.year}
-        onchange={value => {
-          this.year = value;
-          this.loadGraph();
-        }
-      }>
-      </Select>
+      <h2>{app.translator.trans('foskym-activity-graph.forum.label.activity_graph')}</h2>
+      <div style="display: flex; justify-content: space-between; align-items: end;">
+        <span>{app.translator.trans('foskym-activity-graph.forum.label.total_times', {total: this.total})}</span>
+        <Select
+          options={options}
+          value={this.year}
+          onchange={value => {
+            this.year = value;
+            this.loadGraph();
+          }}
+        >
+        </Select>
+      </div>
+
       <div id="activity-graph" style="width:100%; height:150px;"></div>
     </div>;
 

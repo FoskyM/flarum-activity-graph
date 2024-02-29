@@ -47,13 +47,19 @@ class ApiActivityGraphController implements RequestHandlerInterface
             ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
             ->get();
 
-        $results = $results->map(function ($item) {
+        $total = 0;
+
+        $results = $results->map(function ($item) use (&$total) {
+            $total += $item->total;
             return [
                 date('Y-m-d', strtotime($item->created_at)),
                 $item->total
             ];
         });
 
-        return new JsonResponse($results);
+        return new JsonResponse([
+            'total' => $total,
+            'data' => $results
+        ]);
     }
 }
