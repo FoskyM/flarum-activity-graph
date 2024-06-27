@@ -1,5 +1,7 @@
 foskym-activity-graph:
   admin:
+    settings:
+      query-others-activity-graph: 查询其他用户活动图表
 
   forum:
     label:

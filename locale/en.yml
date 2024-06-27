@@ -1,5 +1,7 @@
 foskym-activity-graph:
   admin:
+    settings:
+      query-others-activity-graph: Query Others' Activity Graph
 
   forum:
     label:
