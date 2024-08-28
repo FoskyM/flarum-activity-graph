@@ -3,6 +3,7 @@ import UserPage from 'flarum/forum/components/UserPage';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import Select from 'flarum/common/components/Select';
 import extractText from 'flarum/common/utils/extractText';
+import { categories } from '../../common/utils/categories';
 
 export default class AuthorizedPage extends UserPage {
   loading = true;
@@ -83,18 +84,7 @@ export default class AuthorizedPage extends UserPage {
               ' <b>' +
               (format.indexOf('[count]') != -1 ? format.replace('[count]', total) : total + ' ' + format) +
               '</b></p>';
-            [
-              'comments',
-              'discussions',
-              'likes',
-              'custom_levels_exp_logs',
-              'invite_user_invites',
-              'store_purchases',
-              'polls_create_polls',
-              'polls_votes',
-              'username_requests_username',
-              'username_requests_nickname',
-            ].forEach((category) => {
+              categories.forEach((category) => {
               if (app.forum.attribute('foskym-activity-graph.count_' + category) == false) return;
               if (that.categories[category] && that.categories[category][date]) {
                 html +=
