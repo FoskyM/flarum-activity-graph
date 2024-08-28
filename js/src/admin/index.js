@@ -11,7 +11,16 @@ app.initializers.add('foskym/flarum-activity-graph', () => {
     'view'
   );
 
-  ['comments', 'discussions', 'likes', 'custom_levels_exp_logs', 'invite_user_invites', 'store_purchases'].forEach((category) => {
+  [
+    'comments',
+    'discussions',
+    'likes',
+    'custom_levels_exp_logs',
+    'invite_user_invites',
+    'store_purchases',
+    'polls_create_polls',
+    'polls_votes',
+  ].forEach((category) => {
     app.extensionData.for('foskym-activity-graph').registerSetting({
       setting: 'foskym-activity-graph.count_' + category,
       label: app.translator.trans('foskym-activity-graph.admin.settings.count_' + category),

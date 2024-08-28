@@ -27,6 +27,8 @@ use Flarum\Discussion\Discussion;
 use FoskyM\CustomLevels\Model\ExpLog;
 use Xypp\InviteUser\InvitedUser;
 use Xypp\Store\PurchaseHistory;
+use FoF\Polls\Poll;
+use FoF\Polls\PollVote;
 
 class ApiActivityGraphController implements RequestHandlerInterface
 {
@@ -60,6 +62,8 @@ class ApiActivityGraphController implements RequestHandlerInterface
         $count_custom_levels_exp_logs = $this->settings->get('foskym-activity-graph.count_custom_levels_exp_logs');
         $count_invite_user_invites = $this->settings->get('foskym-activity-graph.count_invite_user_invites');
         $count_store_purchases = $this->settings->get('foskym-activity-graph.count_store_purchases');
+        $count_polls_create_polls = $this->settings->get('foskym-activity-graph.count_polls_create_polls');
+        $count_polls_votes = $this->settings->get('foskym-activity-graph.count_polls_votes');
 
         if ($count_comments) {
             $comments = CommentPost::whereBetween('created_at', [$begin, $end])
@@ -167,6 +171,44 @@ class ApiActivityGraphController implements RequestHandlerInterface
                         $temp[$date] += $item->total :
                         $temp[$date] = $item->total;
                     $categories['store_purchases'][$date] = $item->total;
+                });
+            }
+        }
+
+        if ($count_polls_create_polls) {
+            if ($this->extensionManager->isEnabled('fof-polls')) {
+                $polls = Poll::whereBetween('created_at', [$begin, $end])
+                    ->where('user_id', $user_id)
+                    ->select('created_at', DB::raw('COUNT(*) as total'))
+                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
+                    ->get();
+
+                $polls->map(function ($item) use (&$total, &$temp, &$categories) {
+                    $total += $item->total;
+                    $date = date('Y-m-d', strtotime($item->created_at));
+                    isset($temp[$date]) ?
+                        $temp[$date] += $item->total :
+                        $temp[$date] = $item->total;
+                    $categories['polls_create_polls'][$date] = $item->total;
+                });
+            }
+        }
+
+        if ($count_polls_votes) {
+            if ($this->extensionManager->isEnabled('fof-polls')) {
+                $votes = PollVote::whereBetween('created_at', [$begin, $end])
+                    ->where('user_id', $user_id)
+                    ->select('created_at', DB::raw('COUNT(*) as total'))
+                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
+                    ->get();
+
+                $votes->map(function ($item) use (&$total, &$temp, &$categories) {
+                    $total += $item->total;
+                    $date = date('Y-m-d', strtotime($item->created_at));
+                    isset($temp[$date]) ?
+                        $temp[$date] += $item->total :
+                        $temp[$date] = $item->total;
+                    $categories['polls_votes'][$date] = $item->total;
                 });
             }
         }
