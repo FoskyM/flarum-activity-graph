@@ -9,6 +9,8 @@ foskym-activity-graph:
       count_store_purchases: 商店购买次数 (需要安装 xypp/store)
       count_polls_create_polls: 创建投票次数 (需要安装 fof/polls)
       count_polls_votes: 投票次数 (需要安装 fof/polls)
+      count_username_requests_username: 用户名修改请求次数 (需要安装 fof/username-requests)
+      count_username_requests_nickname: 昵称修改请求次数 (需要安装 fof/username-requests 和 flarum-nicknames)
 
     permissons:
       query-others-activity-graph: 查询其他用户活动图表
@@ -29,3 +31,5 @@ foskym-activity-graph:
         store_purchases: 商店购买
         polls_create_polls: 创建投票
         polls_votes: 投票
+        username_requests_username: 用户名修改请求
+        username_requests_nickname: 昵称修改请求

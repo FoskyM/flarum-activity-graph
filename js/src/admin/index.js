@@ -20,6 +20,8 @@ app.initializers.add('foskym/flarum-activity-graph', () => {
     'store_purchases',
     'polls_create_polls',
     'polls_votes',
+    'username_requests_username',
+    'username_requests_nickname',
   ].forEach((category) => {
     app.extensionData.for('foskym-activity-graph').registerSetting({
       setting: 'foskym-activity-graph.count_' + category,

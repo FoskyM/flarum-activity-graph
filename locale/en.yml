@@ -9,6 +9,8 @@ foskym-activity-graph:
       count_store_purchases: Count Store Purchases (requires xypp/store)
       count_polls_create_polls: Count Polls Created (requires fof/polls)
       count_polls_votes: Count Poll Votes (requires fof/polls)
+      count_username_requests_username: Count Change Username Requests (requires fof/username-requests)
+      count_username_requests_nickname: Count Change Nickname Requests (requires fof/username-requests and flarum-nicknames)
 
     permissons:
       query-others-activity-graph: Query Others' Activity Graph
@@ -29,3 +31,5 @@ foskym-activity-graph:
         store_purchases: Store Purchases
         polls_create_polls: Polls Created
         polls_votes: Poll Votes
+        username_requests_username: Username Change Requests
+        username_requests_nickname: Nickname Change Requests

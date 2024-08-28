@@ -29,6 +29,7 @@ use Xypp\InviteUser\InvitedUser;
 use Xypp\Store\PurchaseHistory;
 use FoF\Polls\Poll;
 use FoF\Polls\PollVote;
+use FoF\UserRequest\UsernameRequest;
 
 class ApiActivityGraphController implements RequestHandlerInterface
 {
@@ -64,6 +65,8 @@ class ApiActivityGraphController implements RequestHandlerInterface
         $count_store_purchases = $this->settings->get('foskym-activity-graph.count_store_purchases');
         $count_polls_create_polls = $this->settings->get('foskym-activity-graph.count_polls_create_polls');
         $count_polls_votes = $this->settings->get('foskym-activity-graph.count_polls_votes');
+        $count_username_requests_username = $this->settings->get('foskym-activity-graph.count_username_requests_username');
+        $count_username_requests_nickname = $this->settings->get('foskym-activity-graph.count_username_requests_nickname');
 
         if ($count_comments) {
             $comments = CommentPost::whereBetween('created_at', [$begin, $end])
@@ -209,6 +212,46 @@ class ApiActivityGraphController implements RequestHandlerInterface
                         $temp[$date] += $item->total :
                         $temp[$date] = $item->total;
                     $categories['polls_votes'][$date] = $item->total;
+                });
+            }
+        }
+
+        if ($count_username_requests_username) {
+            if ($this->extensionManager->isEnabled('fof-username-request')) {
+                $requests = UsernameRequest::whereBetween('created_at', [$begin, $end])
+                    ->where('user_id', $user_id)
+                    ->where('for_nickname', 0)
+                    ->select('created_at', DB::raw('COUNT(*) as total'))
+                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
+                    ->get();
+
+                $requests->map(function ($item) use (&$total, &$temp, &$categories) {
+                    $total += $item->total;
+                    $date = date('Y-m-d', strtotime($item->created_at));
+                    isset($temp[$date]) ?
+                        $temp[$date] += $item->total :
+                        $temp[$date] = $item->total;
+                    $categories['username_requests_username'][$date] = $item->total;
+                });
+            }
+        }
+
+        if ($count_username_requests_nickname) {
+            if ($this->extensionManager->isEnabled('fof-username-request') && $this->extensionManager->isEnabled('flarum-nicknames')) {
+                $requests = UsernameRequest::whereBetween('created_at', [$begin, $end])
+                    ->where('user_id', $user_id)
+                    ->where('for_nickname', 1)
+                    ->select('created_at', DB::raw('COUNT(*) as total'))
+                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
+                    ->get();
+
+                $requests->map(function ($item) use (&$total, &$temp, &$categories) {
+                    $total += $item->total;
+                    $date = date('Y-m-d', strtotime($item->created_at));
+                    isset($temp[$date]) ?
+                        $temp[$date] += $item->total :
+                        $temp[$date] = $item->total;
+                    $categories['username_requests_nickname'][$date] = $item->total;
                 });
             }
         }

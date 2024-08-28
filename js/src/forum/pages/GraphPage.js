@@ -83,6 +83,8 @@ export default class AuthorizedPage extends UserPage {
               'store_purchases',
               'polls_create_polls',
               'polls_votes',
+              'username_requests_username',
+              'username_requests_nickname',
             ].forEach((category) => {
               if (app.forum.attribute('foskym-activity-graph.count_' + category) == false) return;
               if (that.categories[category] && that.categories[category][date]) {
