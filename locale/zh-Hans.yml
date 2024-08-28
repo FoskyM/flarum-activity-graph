@@ -6,6 +6,7 @@ foskym-activity-graph:
       count_likes: 统计点赞次数
       count_custom_levels_exp_logs: 经验变动次数 (需要安装 Custom Levels)
       count_invite_user_invites: 邀请用户次数 (需要安装 xypp/flarum-invite-user)
+      count_store_purchases: 商店购买次数 (需要安装 xypp/store)
 
     permissons:
       query-others-activity-graph: 查询其他用户活动图表
@@ -23,3 +24,4 @@ foskym-activity-graph:
         likes: 点赞
         custom_levels_exp_logs: 经验变动
         invite_user_invites: 邀请用户
+        store_purchases: 商店购买

@@ -6,6 +6,7 @@ foskym-activity-graph:
       count_likes: Count Likes
       count_custom_levels_exp_logs: Custom Levels Exp Logs (requires Custom Levels)
       count_invite_user_invites: Count User Invites (requires xypp/flarum-invite-user)
+      count_store_purchases: Count Store Purchases (requires xypp/store)
 
     permissons:
       query-others-activity-graph: Query Others' Activity Graph
@@ -23,3 +24,4 @@ foskym-activity-graph:
         likes: Likes
         custom_levels_exp_logs: Exp Changes
         invite_user_invites: Invites
+        store_purchases: Store Purchases
