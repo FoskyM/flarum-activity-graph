@@ -22,6 +22,9 @@ foskym-activity-graph:
       times_display_format: 次数显示格式
       times_display_format_help: 用于显示活动图表中的次数，例如：“次”，“[count] 次”
 
+      from_year: 开始年份
+      from_year_help: 活动图表的开始年份
+
     permissons:
       query-others-activity-graph: 查询其他用户活动图表
 

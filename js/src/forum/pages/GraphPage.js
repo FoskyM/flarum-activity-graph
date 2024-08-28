@@ -175,9 +175,11 @@ export default class AuthorizedPage extends UserPage {
 
   content() {
     let options = {};
-    for (let i = 0; i < 10; i++) {
-      let year = (new Date().getFullYear() - i).toString();
-      options[year] = year;
+    let current_year = new Date().getFullYear().toString();
+    let from_year = app.forum.attribute('foskym-activity-graph.from_year') || current_year;
+    if (from_year > current_year) from_year = current_year;
+    for (let i = parseInt(from_year); i <= parseInt(current_year); i++) {
+      options[i.toString()] = i.toString();
     }
 
     let format =

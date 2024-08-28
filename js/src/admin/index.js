@@ -23,6 +23,13 @@ app.initializers.add('foskym/flarum-activity-graph', () => {
       type: 'text',
       default: extractText(app.translator.trans('foskym-activity-graph.lib.defaults.times_display_format')),
     })
+    .registerSetting({
+      setting: 'foskym-activity-graph.from_year',
+      label: app.translator.trans('foskym-activity-graph.admin.settings.from_year'),
+      help: app.translator.trans('foskym-activity-graph.admin.settings.from_year_help'),
+      type: 'number',
+      default: '2020',
+    })
     .registerPermission(
       {
         icon: 'fas fa-id-card',

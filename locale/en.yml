@@ -22,6 +22,9 @@ foskym-activity-graph:
       times_display_format: Times Display Format
       times_display_format_help: Used to display times in the activity graph, e.g., "times", "[count] times"
 
+      from_year: From Year
+      from_year_help: The start year of the activity graph
+
     permissons:
       query-others-activity-graph: Query Others' Activity Graph
 
