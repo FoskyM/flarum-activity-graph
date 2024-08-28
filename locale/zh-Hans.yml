@@ -11,6 +11,7 @@ foskym-activity-graph:
       count_polls_votes: 投票次数 (需要安装 fof/polls)
       count_username_requests_username: 用户名修改请求次数 (需要安装 fof/username-requests)
       count_username_requests_nickname: 昵称修改请求次数 (需要安装 fof/username-requests 和 flarum-nicknames)
+      count_best_answer_marked: 被标记最佳答案次数 (需要安装 fof/best-answer)
 
       tooltip_position: 提示框位置
       tooltip_position_options:
@@ -45,6 +46,7 @@ foskym-activity-graph:
         polls_votes: 投票
         username_requests_username: 用户名修改请求
         username_requests_nickname: 昵称修改请求
+        best_answer_marked: 最佳答案
 
   lib:
     defaults:

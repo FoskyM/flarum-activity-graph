@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * This file is part of foskym/flarum-activity-graph.
+ *
+ * Copyright (c) 2024 FoskyM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
 namespace FoskyM\ActivityGraph\Controllers;
 
 use Flarum\User\User;
@@ -59,6 +67,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'polls_votes' => 'foskym-activity-graph.count_polls_votes',
             'username_requests_username' => 'foskym-activity-graph.count_username_requests_username',
             'username_requests_nickname' => 'foskym-activity-graph.count_username_requests_nickname',
+            'best_answer_marked' => 'foskym-activity-graph.count_best_answer_marked',
         ];
 
         foreach ($settings as $category => $setting) {
@@ -94,6 +103,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'polls_votes' => 'fof-polls',
             'username_requests_username' => 'fof-username-request',
             'username_requests_nickname' => 'fof-username-request',
+            'best_answer_marked' => 'fof-best-answer',
         ];
 
         if (isset($extensionMap[$category]) && !$this->extensionManager->isEnabled($extensionMap[$category])) {
@@ -111,21 +121,24 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'polls_votes' => PollVote::class,
             'username_requests_username' => UsernameRequest::class,
             'username_requests_nickname' => UsernameRequest::class,
+            'best_answer_marked' => Discussion::class,
         ];
 
         $model = $modelMap[$category];
 
         if ($category === 'likes') {
             $query = $model->whereBetween('created_at', [$begin, $end])
-                ->where('user_id', $user_id)
-                ->select('created_at', DB::raw('COUNT(*) as total'))
-                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
+                ->where('user_id', $user_id);
+        } elseif ($category === 'best_answer_marked') {
+            $query = $model::whereBetween('created_at', [$begin, $end])
+                ->where('best_answer_user_id', $user_id);
         } else {
             $query = $model::whereBetween('created_at', [$begin, $end])
-                ->where('user_id', $user_id)
-                ->select('created_at', DB::raw('COUNT(*) as total'))
-                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
+                ->where('user_id', $user_id);
         }
+
+        $query->select('created_at', DB::raw('COUNT(*) as total'))
+            ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
 
         if ($category === 'comments') {
             $query->where('number', '>', 1);

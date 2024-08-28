@@ -11,6 +11,7 @@ foskym-activity-graph:
       count_polls_votes: Count Poll Votes (requires fof/polls)
       count_username_requests_username: Count Change Username Requests (requires fof/username-requests)
       count_username_requests_nickname: Count Change Nickname Requests (requires fof/username-requests and flarum-nicknames)
+      count_best_answer_marked: Count Best Answer Marked (requires fof/best-answer)
 
       tooltip_position: Tooltip Position
       tooltip_position_options:
@@ -45,6 +46,7 @@ foskym-activity-graph:
         polls_votes: Poll Votes
         username_requests_username: Username Change Requests
         username_requests_nickname: Nickname Change Requests
+        best_answer_marked: Best Answer Marked
 
   lib:
     defaults:
