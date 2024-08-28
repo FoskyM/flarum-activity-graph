@@ -1,18 +1,10 @@
 <?php
 
-/*
- * This file is part of foskym/flarum-activity-graph.
- *
- * Copyright (c) 2024 FoskyM.
- *
- * For the full copyright and license information, please view the LICENSE.md
- * file that was distributed with this source code.
- */
 namespace FoskyM\ActivityGraph\Controllers;
+
 use Flarum\User\User;
 use Flarum\Http\RequestUtil;
 use Illuminate\Support\Arr;
-// use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Capsule\Manager as DB;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,8 +12,6 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Laminas\Diactoros\Response\JsonResponse;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\Extension\ExtensionManager;
-use Flarum\Group\Group;
-use Flarum\Post\Post;
 use Flarum\Post\CommentPost;
 use Flarum\Discussion\Discussion;
 use FoskyM\CustomLevels\Model\ExpLog;
@@ -35,6 +25,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
 {
     protected $settings;
     protected $extensionManager;
+
     public function __construct(SettingsRepositoryInterface $settings, ExtensionManager $extensionManager)
     {
         $this->settings = $settings;
@@ -57,202 +48,22 @@ class ApiActivityGraphController implements RequestHandlerInterface
         $temp = [];
         $categories = [];
 
-        $count_comments = $this->settings->get('foskym-activity-graph.count_comments');
-        $count_discussions = $this->settings->get('foskym-activity-graph.count_discussions');
-        $count_likes = $this->settings->get('foskym-activity-graph.count_likes');
-        $count_custom_levels_exp_logs = $this->settings->get('foskym-activity-graph.count_custom_levels_exp_logs');
-        $count_invite_user_invites = $this->settings->get('foskym-activity-graph.count_invite_user_invites');
-        $count_store_purchases = $this->settings->get('foskym-activity-graph.count_store_purchases');
-        $count_polls_create_polls = $this->settings->get('foskym-activity-graph.count_polls_create_polls');
-        $count_polls_votes = $this->settings->get('foskym-activity-graph.count_polls_votes');
-        $count_username_requests_username = $this->settings->get('foskym-activity-graph.count_username_requests_username');
-        $count_username_requests_nickname = $this->settings->get('foskym-activity-graph.count_username_requests_nickname');
+        $settings = [
+            'comments' => 'foskym-activity-graph.count_comments',
+            'discussions' => 'foskym-activity-graph.count_discussions',
+            'likes' => 'foskym-activity-graph.count_likes',
+            'custom_levels_exp_logs' => 'foskym-activity-graph.count_custom_levels_exp_logs',
+            'invite_user_invites' => 'foskym-activity-graph.count_invite_user_invites',
+            'store_purchases' => 'foskym-activity-graph.count_store_purchases',
+            'polls_create_polls' => 'foskym-activity-graph.count_polls_create_polls',
+            'polls_votes' => 'foskym-activity-graph.count_polls_votes',
+            'username_requests_username' => 'foskym-activity-graph.count_username_requests_username',
+            'username_requests_nickname' => 'foskym-activity-graph.count_username_requests_nickname',
+        ];
 
-        if ($count_comments) {
-            $comments = CommentPost::whereBetween('created_at', [$begin, $end])
-                ->where('user_id', $user_id)
-                ->where('number', '>', 1)
-                ->select('created_at', DB::raw('COUNT(*) as total'))
-                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                ->get();
-
-            $comments->map(function ($item) use (&$total, &$temp, &$categories) {
-                $total += $item->total;
-                $date = date('Y-m-d', strtotime($item->created_at));
-                isset($temp[$date]) ?
-                    $temp[$date] += $item->total :
-                    $temp[$date] = $item->total;
-                $categories['comments'][$date] = $item->total;
-            });
-        }
-
-        if ($count_discussions) {
-            $discussions = Discussion::whereBetween('created_at', [$begin, $end])
-                ->where('user_id', $user_id)
-                ->select('created_at', DB::raw('COUNT(*) as total'))
-                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                ->get();
-
-            $discussions->map(function ($item) use (&$total, &$temp, &$categories) {
-                $total += $item->total;
-                $date = date('Y-m-d', strtotime($item->created_at));
-                isset($temp[$date]) ?
-                    $temp[$date] += $item->total :
-                    $temp[$date] = $item->total;
-                $categories['discussions'][$date] = $item->total;
-            });
-        }
-
-        if ($count_likes) {
-            $likes = DB::table('post_likes')
-                ->whereBetween('created_at', [$begin, $end])
-                ->where('user_id', $user_id)
-                ->select('created_at', DB::raw('COUNT(*) as total'))
-                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                ->get();
-
-            $likes->map(function ($item) use (&$total, &$temp, &$categories) {
-                $total += $item->total;
-                $date = date('Y-m-d', strtotime($item->created_at));
-                isset($temp[$date]) ?
-                    $temp[$date] += $item->total :
-                    $temp[$date] = $item->total;
-                $categories['likes'][$date] = $item->total;
-            });
-        }
-
-        if ($count_custom_levels_exp_logs) {
-            if ($this->extensionManager->isEnabled('foskym-custom-levels')) {
-                $logs = ExpLog::whereBetween('created_at', [$begin, $end])
-                    ->where('user_id', $user_id)
-                    ->select('created_at', DB::raw('COUNT(*) as total'))
-                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                    ->get();
-
-                $logs->map(function ($item) use (&$total, &$temp, &$categories) {
-                    $total += $item->total;
-                    $date = date('Y-m-d', strtotime($item->created_at));
-                    isset($temp[$date]) ?
-                        $temp[$date] += $item->total :
-                        $temp[$date] = $item->total;
-                    $categories['custom_levels_exp_logs'][$date] = $item->total;
-                });
-            }
-        }
-
-        if ($count_invite_user_invites) {
-            if ($this->extensionManager->isEnabled('xypp-invite-user')) {
-                $invites = InvitedUser::whereBetween('created_at', [$begin, $end])
-                    ->where('user_id', $user_id)
-                    ->select('created_at', DB::raw('COUNT(*) as total'))
-                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                    ->get();
-
-                $invites->map(function ($item) use (&$total, &$temp, &$categories) {
-                    $total += $item->total;
-                    $date = date('Y-m-d', strtotime($item->created_at));
-                    isset($temp[$date]) ?
-                        $temp[$date] += $item->total :
-                        $temp[$date] = $item->total;
-                    $categories['invite_user_invites'][$date] = $item->total;
-                });
-            }
-        }
-
-        if ($count_store_purchases) {
-            if ($this->extensionManager->isEnabled('xypp-store')) {
-                $invites = PurchaseHistory::whereBetween('created_at', [$begin, $end])
-                    ->where('user_id', $user_id)
-                    ->select('created_at', DB::raw('COUNT(*) as total'))
-                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                    ->get();
-
-                $invites->map(function ($item) use (&$total, &$temp, &$categories) {
-                    $total += $item->total;
-                    $date = date('Y-m-d', strtotime($item->created_at));
-                    isset($temp[$date]) ?
-                        $temp[$date] += $item->total :
-                        $temp[$date] = $item->total;
-                    $categories['store_purchases'][$date] = $item->total;
-                });
-            }
-        }
-
-        if ($count_polls_create_polls) {
-            if ($this->extensionManager->isEnabled('fof-polls')) {
-                $polls = Poll::whereBetween('created_at', [$begin, $end])
-                    ->where('user_id', $user_id)
-                    ->select('created_at', DB::raw('COUNT(*) as total'))
-                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                    ->get();
-
-                $polls->map(function ($item) use (&$total, &$temp, &$categories) {
-                    $total += $item->total;
-                    $date = date('Y-m-d', strtotime($item->created_at));
-                    isset($temp[$date]) ?
-                        $temp[$date] += $item->total :
-                        $temp[$date] = $item->total;
-                    $categories['polls_create_polls'][$date] = $item->total;
-                });
-            }
-        }
-
-        if ($count_polls_votes) {
-            if ($this->extensionManager->isEnabled('fof-polls')) {
-                $votes = PollVote::whereBetween('created_at', [$begin, $end])
-                    ->where('user_id', $user_id)
-                    ->select('created_at', DB::raw('COUNT(*) as total'))
-                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                    ->get();
-
-                $votes->map(function ($item) use (&$total, &$temp, &$categories) {
-                    $total += $item->total;
-                    $date = date('Y-m-d', strtotime($item->created_at));
-                    isset($temp[$date]) ?
-                        $temp[$date] += $item->total :
-                        $temp[$date] = $item->total;
-                    $categories['polls_votes'][$date] = $item->total;
-                });
-            }
-        }
-
-        if ($count_username_requests_username) {
-            if ($this->extensionManager->isEnabled('fof-username-request')) {
-                $requests = UsernameRequest::whereBetween('created_at', [$begin, $end])
-                    ->where('user_id', $user_id)
-                    ->where('for_nickname', 0)
-                    ->select('created_at', DB::raw('COUNT(*) as total'))
-                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                    ->get();
-
-                $requests->map(function ($item) use (&$total, &$temp, &$categories) {
-                    $total += $item->total;
-                    $date = date('Y-m-d', strtotime($item->created_at));
-                    isset($temp[$date]) ?
-                        $temp[$date] += $item->total :
-                        $temp[$date] = $item->total;
-                    $categories['username_requests_username'][$date] = $item->total;
-                });
-            }
-        }
-
-        if ($count_username_requests_nickname) {
-            if ($this->extensionManager->isEnabled('fof-username-request') && $this->extensionManager->isEnabled('flarum-nicknames')) {
-                $requests = UsernameRequest::whereBetween('created_at', [$begin, $end])
-                    ->where('user_id', $user_id)
-                    ->where('for_nickname', 1)
-                    ->select('created_at', DB::raw('COUNT(*) as total'))
-                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
-                    ->get();
-
-                $requests->map(function ($item) use (&$total, &$temp, &$categories) {
-                    $total += $item->total;
-                    $date = date('Y-m-d', strtotime($item->created_at));
-                    isset($temp[$date]) ?
-                        $temp[$date] += $item->total :
-                        $temp[$date] = $item->total;
-                    $categories['username_requests_nickname'][$date] = $item->total;
-                });
+        foreach ($settings as $category => $setting) {
+            if ($this->settings->get($setting)) {
+                $this->processCategory($category, $begin, $end, $user_id, $total, $temp, $categories);
             }
         }
 
@@ -270,5 +81,71 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'data' => $results,
             'categories' => $categories
         ]);
+    }
+
+    private function processCategory($category, $begin, $end, $user_id, &$total, &$temp, &$categories)
+    {
+        $extensionMap = [
+            'likes' => 'flarum-likes',
+            'custom_levels_exp_logs' => 'foskym-custom-levels',
+            'invite_user_invites' => 'xypp-invite-user',
+            'store_purchases' => 'xypp-store',
+            'polls_create_polls' => 'fof-polls',
+            'polls_votes' => 'fof-polls',
+            'username_requests_username' => 'fof-username-request',
+            'username_requests_nickname' => 'fof-username-request',
+        ];
+
+        if (isset($extensionMap[$category]) && !$this->extensionManager->isEnabled($extensionMap[$category])) {
+            return;
+        }
+
+        $modelMap = [
+            'comments' => CommentPost::class,
+            'discussions' => Discussion::class,
+            'likes' => DB::table('post_likes'),
+            'custom_levels_exp_logs' => ExpLog::class,
+            'invite_user_invites' => InvitedUser::class,
+            'store_purchases' => PurchaseHistory::class,
+            'polls_create_polls' => Poll::class,
+            'polls_votes' => PollVote::class,
+            'username_requests_username' => UsernameRequest::class,
+            'username_requests_nickname' => UsernameRequest::class,
+        ];
+
+        $model = $modelMap[$category];
+
+        if ($category === 'likes') {
+            $query = $model->whereBetween('created_at', [$begin, $end])
+                ->where('user_id', $user_id)
+                ->select('created_at', DB::raw('COUNT(*) as total'))
+                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
+        } else {
+            $query = $model::whereBetween('created_at', [$begin, $end])
+                ->where('user_id', $user_id)
+                ->select('created_at', DB::raw('COUNT(*) as total'))
+                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
+        }
+
+        if ($category === 'comments') {
+            $query->where('number', '>', 1);
+        }
+
+        if ($category === 'username_requests_username') {
+            $query->where('for_nickname', 0);
+        } elseif ($category === 'username_requests_nickname') {
+            $query->where('for_nickname', 1);
+        }
+
+        $items = $query->get();
+
+        $items->map(function ($item) use (&$total, &$temp, &$categories, $category) {
+            $total += $item->total;
+            $date = date('Y-m-d', strtotime($item->created_at));
+            isset($temp[$date]) ?
+                $temp[$date] += $item->total :
+                $temp[$date] = $item->total;
+            $categories[$category][$date] = $item->total;
+        });
     }
 }
