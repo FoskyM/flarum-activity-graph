@@ -1,6 +1,11 @@
 foskym-activity-graph:
   admin:
     settings:
+      count_comments: 统计回帖次数
+      count_discussions: 统计讨论发起次数
+      count_likes: 统计点赞次数
+
+    permissons:
       query-others-activity-graph: 查询其他用户活动图表
 
   forum:

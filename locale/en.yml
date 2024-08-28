@@ -1,6 +1,11 @@
 foskym-activity-graph:
   admin:
     settings:
+      count_comments: Count Comments
+      count_discussions: Count Discussions
+      count_likes: Count Likes
+
+    permissons:
       query-others-activity-graph: Query Others' Activity Graph
 
   forum:

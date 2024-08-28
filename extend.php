@@ -28,5 +28,10 @@ return [
     new Extend\Locales(__DIR__.'/locale'),
 
     (new Extend\Routes('api'))
-        ->get('/activity-graph', 'activity-graph', Controllers\ApiActivityGraphController::class)
+        ->get('/activity-graph', 'activity-graph', Controllers\ApiActivityGraphController::class),
+
+    (new Extend\Settings())
+        ->serializeToForum('foskym-activity-graph.count_comments', 'foskym-activity-graph.count_comments', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_discussions', 'foskym-activity-graph.count_discussions', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_likes', 'foskym-activity-graph.count_likes', 'boolval'),
 ];

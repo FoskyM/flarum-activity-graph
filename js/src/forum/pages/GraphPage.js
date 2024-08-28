@@ -75,6 +75,7 @@ export default class AuthorizedPage extends UserPage {
             let unit = app.translator.trans('foskym-activity-graph.forum.label.unit');
             let html = '<p>' + e.marker + date.substring(5) + ' <b>' + total + ' ' + unit + '</b></p>';
             ['comments', 'discussions', 'likes'].forEach((category) => {
+              if (app.forum.attribute('foskym-activity-graph.count_' + category) == false) return;
               if (that.categories[category][date]) {
                 html +=
                   '<p><small>' +
