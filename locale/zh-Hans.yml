@@ -12,6 +12,13 @@ foskym-activity-graph:
       count_username_requests_username: 用户名修改请求次数 (需要安装 fof/username-requests)
       count_username_requests_nickname: 昵称修改请求次数 (需要安装 fof/username-requests 和 flarum-nicknames)
 
+      tooltip_position: 提示框位置
+      tooltip_position_options:
+        top: 顶部
+        right: 右侧
+        bottom: 底部
+        left: 左侧
+
     permissons:
       query-others-activity-graph: 查询其他用户活动图表
 

@@ -67,7 +67,7 @@ export default class AuthorizedPage extends UserPage {
       this.chart.setOption({
         backgroundColor: bodyBg,
         tooltip: {
-          position: 'top',
+          position: app.forum.attribute('foskym-activity-graph.tooltip_position') || 'top',
           className: 'foskym-activity-graph-tooltip',
           formatter: function (e) {
             let date = e.data[0];

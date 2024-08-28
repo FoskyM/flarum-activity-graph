@@ -12,6 +12,13 @@ foskym-activity-graph:
       count_username_requests_username: Count Change Username Requests (requires fof/username-requests)
       count_username_requests_nickname: Count Change Nickname Requests (requires fof/username-requests and flarum-nicknames)
 
+      tooltip_position: Tooltip Position
+      tooltip_position_options:
+        top: Top
+        right: Right
+        bottom: Bottom
+        left: Left
+
     permissons:
       query-others-activity-graph: Query Others' Activity Graph
 

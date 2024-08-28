@@ -33,5 +33,14 @@ return [
     (new Extend\Settings())
         ->serializeToForum('foskym-activity-graph.count_comments', 'foskym-activity-graph.count_comments', 'boolval')
         ->serializeToForum('foskym-activity-graph.count_discussions', 'foskym-activity-graph.count_discussions', 'boolval')
-        ->serializeToForum('foskym-activity-graph.count_likes', 'foskym-activity-graph.count_likes', 'boolval'),
+        ->serializeToForum('foskym-activity-graph.count_likes', 'foskym-activity-graph.count_likes', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_custom_levels_exp_logs', 'foskym-activity-graph.count_custom_levels_exp_logs', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_invite_user_invites', 'foskym-activity-graph.count_invite_user_invites', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_store_purchases', 'foskym-activity-graph.count_store_purchases', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_polls_create_polls', 'foskym-activity-graph.count_polls_create_polls', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_polls_votes', 'foskym-activity-graph.count_polls_votes', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_username_requests_username', 'foskym-activity-graph.count_username_requests_username', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_username_requests_nickname', 'foskym-activity-graph.count_username_requests_nickname', 'boolval')
+
+        ->serializeToForum('foskym-activity-graph.tooltip_position', 'foskym-activity-graph.tooltip_position')
 ];

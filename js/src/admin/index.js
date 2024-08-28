@@ -1,15 +1,29 @@
 import app from 'flarum/admin/app';
 
 app.initializers.add('foskym/flarum-activity-graph', () => {
-  app.extensionData.for('foskym-activity-graph').registerPermission(
-    {
-      icon: 'fas fa-id-card',
-      label: app.translator.trans('foskym-activity-graph.admin.permissons.query-others-activity-graph'),
-      permission: 'foskym-activity-graph.queryOthersActivityGraph',
-      allowGuest: true,
-    },
-    'view'
-  );
+  let options = {};
+  ['top', 'right', 'bottom', 'left'].map((position) => {
+    options[position] = app.translator.trans('foskym-activity-graph.admin.settings.tooltip_position_options.' + position);
+  })
+
+  app.extensionData
+    .for('foskym-activity-graph')
+    .registerSetting({
+      setting: 'foskym-activity-graph.tooltip_position',
+      label: app.translator.trans('foskym-activity-graph.admin.settings.tooltip_position'),
+      type: 'select',
+      options: options,
+      default: 'top',
+    })
+    .registerPermission(
+      {
+        icon: 'fas fa-id-card',
+        label: app.translator.trans('foskym-activity-graph.admin.permissons.query-others-activity-graph'),
+        permission: 'foskym-activity-graph.queryOthersActivityGraph',
+        allowGuest: true,
+      },
+      'view'
+    );
 
   [
     'comments',
