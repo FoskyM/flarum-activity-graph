@@ -4,7 +4,7 @@ foskym-activity-graph:
       count_comments: Count Comments
       count_discussions: Count Discussions
       count_likes: Count Likes
-      count_custom_levels_exp_logs: Custom Levels Exp Logs (requires Custom Levels)
+      count_custom_levels_exp_logs: Custom Levels Exp Logs (requires foskym/flarum-custom-levels)
       count_invite_user_invites: Count User Invites (requires xypp/flarum-invite-user)
       count_store_purchases: Count Store Purchases (requires xypp/store)
       count_polls_create_polls: Count Polls Created (requires fof/polls)

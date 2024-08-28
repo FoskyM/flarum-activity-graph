@@ -4,7 +4,7 @@ foskym-activity-graph:
       count_comments: 统计回帖次数
       count_discussions: 统计讨论发起次数
       count_likes: 统计点赞次数
-      count_custom_levels_exp_logs: 经验变动次数 (需要安装 Custom Levels)
+      count_custom_levels_exp_logs: 经验变动次数 (需要安装 foskym/flarum-custom-levels)
       count_invite_user_invites: 邀请用户次数 (需要安装 xypp/flarum-invite-user)
       count_store_purchases: 商店购买次数 (需要安装 xypp/store)
       count_polls_create_polls: 创建投票次数 (需要安装 fof/polls)
