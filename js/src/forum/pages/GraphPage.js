@@ -7,6 +7,7 @@ export default class AuthorizedPage extends UserPage {
   loading = true;
   year = new Date().getFullYear().toString();
   graphData = null;
+  categories = null;
   total = 0;
   graph = null;
   resize_handler_bound = false;
@@ -31,6 +32,7 @@ export default class AuthorizedPage extends UserPage {
       .then((result) => {
         this.loading = false;
         this.graphData = result.data;
+        this.categories = result.categories;
         this.total = result.total;
         m.redraw();
         this.renderGraph();
@@ -61,21 +63,30 @@ export default class AuthorizedPage extends UserPage {
       } else {
         this.chart = this.chart || window.echarts.init(graph_container);
       }
+      const that = this;
       this.chart.setOption({
         backgroundColor: bodyBg,
         tooltip: {
           position: 'top',
+          className: 'foskym-activity-graph-tooltip',
           formatter: function (e) {
-            return (
-              '<p>' +
-              e.marker +
-              e.data[0].substring(5) +
-              ' <b>' +
-              e.data[1] +
-              ' ' +
-              app.translator.trans('foskym-activity-graph.forum.label.unit') +
-              '</b></p>'
-            );
+            let date = e.data[0];
+            let total = e.data[1];
+            let unit = app.translator.trans('foskym-activity-graph.forum.label.unit');
+            let html = '<p>' + e.marker + date.substring(5) + ' <b>' + total + ' ' + unit + '</b></p>';
+            ['comments', 'discussions', 'likes'].forEach((category) => {
+              if (that.categories[category][date]) {
+                html +=
+                  '<p><small>' +
+                  app.translator.trans('foskym-activity-graph.forum.label.categories.' + category) +
+                  ' <b>' +
+                  that.categories[category][date] +
+                  ' ' +
+                  unit +
+                  '</b></small></p>';
+              }
+            });
+            return html;
           },
         },
         visualMap: {

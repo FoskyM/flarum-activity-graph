@@ -21,6 +21,8 @@ use Laminas\Diactoros\Response\JsonResponse;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\Group\Group;
 use Flarum\Post\Post;
+use Flarum\Post\CommentPost;
+use Flarum\Discussion\Discussion;
 class ApiActivityGraphController implements RequestHandlerInterface
 {
     protected $settings;
@@ -41,25 +43,66 @@ class ApiActivityGraphController implements RequestHandlerInterface
         $begin = $year . '-01-01';
         $end = ($year + 1) . '-01-01';
 
-        $results = Post::whereBetween('created_at', [$begin, $end])
+        $total = 0;
+        $temp = [];
+        $categories = [];
+
+        $comments = CommentPost::whereBetween('created_at', [$begin, $end])
+            ->where('user_id', $user_id)
+            ->where('number', '>', 1)
+            ->select('created_at', DB::raw('COUNT(*) as total'))
+            ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
+            ->get();
+
+        $comments->map(function ($item) use (&$total, &$temp, &$categories) {
+            $total += $item->total;
+            $date = date('Y-m-d', strtotime($item->created_at));
+            $temp[$date] = $item->total;
+            $categories['comments'][$date] = $item->total;
+        });
+
+        $discussions = Discussion::whereBetween('created_at', [$begin, $end])
             ->where('user_id', $user_id)
             ->select('created_at', DB::raw('COUNT(*) as total'))
             ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
             ->get();
 
-        $total = 0;
-
-        $results = $results->map(function ($item) use (&$total) {
+        $discussions->map(function ($item) use (&$total, &$temp, &$categories) {
             $total += $item->total;
-            return [
-                date('Y-m-d', strtotime($item->created_at)),
-                $item->total
-            ];
+            $date = date('Y-m-d', strtotime($item->created_at));
+            isset($temp[$date]) ?
+                $temp[$date] += $item->total :
+                $temp[$date] = $item->total;
+            $categories['discussions'][$date] = $item->total;
         });
+
+        $likes = DB::table('post_likes')
+            ->whereBetween('created_at', [$begin, $end])
+            ->where('user_id', $user_id)
+            ->select('created_at', DB::raw('COUNT(*) as total'))
+            ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
+            ->get();
+
+        $likes->map(function ($item) use (&$total, &$temp, &$categories) {
+            $total += $item->total;
+            $date = date('Y-m-d', strtotime($item->created_at));
+            isset($temp[$date]) ?
+                $temp[$date] += $item->total :
+                $temp[$date] = $item->total;
+            $categories['likes'][$date] = $item->total;
+        });
+
+        foreach ($temp as $key => $value) {
+            $results[] = [
+                $key,
+                $value
+            ];
+        }
 
         return new JsonResponse([
             'total' => $total,
-            'data' => $results
+            'data' => $results,
+            'categories' => $categories
         ]);
     }
 }
