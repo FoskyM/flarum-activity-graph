@@ -19,16 +19,21 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Laminas\Diactoros\Response\JsonResponse;
 use Flarum\Settings\SettingsRepositoryInterface;
+use Flarum\Extension\ExtensionManager;
 use Flarum\Group\Group;
 use Flarum\Post\Post;
 use Flarum\Post\CommentPost;
 use Flarum\Discussion\Discussion;
+use FoskyM\CustomLevels\Model\ExpLog;
+
 class ApiActivityGraphController implements RequestHandlerInterface
 {
     protected $settings;
-    public function __construct(SettingsRepositoryInterface $settings)
+    protected $extensionManager;
+    public function __construct(SettingsRepositoryInterface $settings, ExtensionManager $extensionManager)
     {
         $this->settings = $settings;
+        $this->extensionManager = $extensionManager;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -50,6 +55,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
         $count_comments = $this->settings->get('foskym-activity-graph.count_comments');
         $count_discussions = $this->settings->get('foskym-activity-graph.count_discussions');
         $count_likes = $this->settings->get('foskym-activity-graph.count_likes');
+        $count_custom_levels_exp_logs = $this->settings->get('foskym-activity-graph.count_custom_levels_exp_logs');
 
         if ($count_comments) {
             $comments = CommentPost::whereBetween('created_at', [$begin, $end])
@@ -102,6 +108,25 @@ class ApiActivityGraphController implements RequestHandlerInterface
                     $temp[$date] = $item->total;
                 $categories['likes'][$date] = $item->total;
             });
+        }
+
+        if ($count_custom_levels_exp_logs) {
+            if ($this->extensionManager->isEnabled('foskym-custom-levels')) {
+                $logs = ExpLog::whereBetween('created_at', [$begin, $end])
+                    ->where('user_id', $user_id)
+                    ->select('created_at', DB::raw('COUNT(*) as total'))
+                    ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'))
+                    ->get();
+
+                $logs->map(function ($item) use (&$total, &$temp, &$categories) {
+                    $total += $item->total;
+                    $date = date('Y-m-d', strtotime($item->created_at));
+                    isset($temp[$date]) ?
+                        $temp[$date] += $item->total :
+                        $temp[$date] = $item->total;
+                    $categories['custom_levels_exp_logs'][$date] = $item->total;
+                });
+            }
         }
 
         $results = [];

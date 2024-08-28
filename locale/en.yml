@@ -4,6 +4,7 @@ foskym-activity-graph:
       count_comments: Count Comments
       count_discussions: Count Discussions
       count_likes: Count Likes
+      count_custom_levels_exp_logs: Custom Levels Exp Logs (requires Custom Levels)
 
     permissons:
       query-others-activity-graph: Query Others' Activity Graph
@@ -19,3 +20,4 @@ foskym-activity-graph:
         comments: Comments
         discussions: Discussions
         likes: Likes
+        custom_levels_exp_logs: Exp Changes
