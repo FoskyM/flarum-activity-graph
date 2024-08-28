@@ -2,6 +2,7 @@ import app from 'flarum/forum/app';
 import UserPage from 'flarum/forum/components/UserPage';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import Select from 'flarum/common/components/Select';
+import extractText from 'flarum/common/utils/extractText';
 
 export default class AuthorizedPage extends UserPage {
   loading = true;
@@ -72,8 +73,16 @@ export default class AuthorizedPage extends UserPage {
           formatter: function (e) {
             let date = e.data[0];
             let total = e.data[1];
-            let unit = app.translator.trans('foskym-activity-graph.forum.label.unit');
-            let html = '<p>' + e.marker + date.substring(5) + ' <b>' + total + ' ' + unit + '</b></p>';
+            let format =
+              app.forum.attribute('foskym-activity-graph.times_display_format') ||
+              extractText(app.translator.trans('foskym-activity-graph.lib.defaults.times_display_format'));
+            let html =
+              '<p>' +
+              e.marker +
+              date.substring(5) +
+              ' <b>' +
+              (format.indexOf('[count]') != -1 ? format.replace('[count]', total) : total + ' ' + format) +
+              '</b></p>';
             [
               'comments',
               'discussions',
@@ -92,9 +101,9 @@ export default class AuthorizedPage extends UserPage {
                   '<p><small>' +
                   app.translator.trans('foskym-activity-graph.forum.label.categories.' + category) +
                   ' <b>' +
-                  that.categories[category][date] +
-                  ' ' +
-                  unit +
+                  (format.indexOf('[count]') != -1
+                    ? format.replace('[count]', that.categories[category][date])
+                    : that.categories[category][date] + ' ' + format) +
                   '</b></small></p>';
               }
             });
@@ -156,7 +165,6 @@ export default class AuthorizedPage extends UserPage {
       if (!this.dark_mode_handler_bound) {
         if (flarum.extensions['fof-nightmode']) {
           document.addEventListener('fofnightmodechange', (event) => {
-            console.log(event.detail);
             this.renderGraph();
           });
         }
@@ -172,11 +180,19 @@ export default class AuthorizedPage extends UserPage {
       options[year] = year;
     }
 
+    let format =
+      app.forum.attribute('foskym-activity-graph.times_display_format') ||
+      extractText(app.translator.trans('foskym-activity-graph.lib.defaults.times_display_format'));
+
     return (
       <div class="activity-graph-page">
         <h2>{app.translator.trans('foskym-activity-graph.forum.label.activity_graph')}</h2>
         <div style="display: flex; justify-content: space-between; align-items: end;">
-          <span>{app.translator.trans('foskym-activity-graph.forum.label.total_times', { total: this.total })}</span>
+          <span>
+            {app.translator.trans('foskym-activity-graph.forum.label.total_times', {
+              total: format.indexOf('[count]') != -1 ? format.replace('[count]', this.total) : this.total + ' ' + format,
+            })}
+          </span>
           <Select
             options={options}
             value={this.year}

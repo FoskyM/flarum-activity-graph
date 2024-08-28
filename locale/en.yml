@@ -19,14 +19,16 @@ foskym-activity-graph:
         bottom: Bottom
         left: Left
 
+      times_display_format: Times Display Format
+      times_display_format_help: Used to display times in the activity graph, e.g., "times", "[count] times"
+
     permissons:
       query-others-activity-graph: Query Others' Activity Graph
 
   forum:
     label:
       activity_graph: Activity Graph
-      total_times: Total {total} times in this year
-      unit: times
+      total_times: Total {total} in this year
       name_map: en # Lang of label. See more on https://echarts.apache.org/en/option.html#calendar.dayLabel.nameMap
 
       categories:
@@ -40,3 +42,7 @@ foskym-activity-graph:
         polls_votes: Poll Votes
         username_requests_username: Username Change Requests
         username_requests_nickname: Nickname Change Requests
+
+  lib:
+    defaults:
+      times_display_format: [count] times

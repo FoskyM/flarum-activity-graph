@@ -1,4 +1,5 @@
 import app from 'flarum/admin/app';
+import extractText from 'flarum/common/utils/extractText';
 
 app.initializers.add('foskym/flarum-activity-graph', () => {
   let options = {};
@@ -14,6 +15,13 @@ app.initializers.add('foskym/flarum-activity-graph', () => {
       type: 'select',
       options: options,
       default: 'top',
+    })
+    .registerSetting({
+      setting: 'foskym-activity-graph.times_display_format',
+      label: app.translator.trans('foskym-activity-graph.admin.settings.times_display_format'),
+      help: app.translator.trans('foskym-activity-graph.admin.settings.times_display_format_help'),
+      type: 'text',
+      default: extractText(app.translator.trans('foskym-activity-graph.lib.defaults.times_display_format')),
     })
     .registerPermission(
       {

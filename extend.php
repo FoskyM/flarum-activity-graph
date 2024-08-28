@@ -43,4 +43,5 @@ return [
         ->serializeToForum('foskym-activity-graph.count_username_requests_nickname', 'foskym-activity-graph.count_username_requests_nickname', 'boolval')
 
         ->serializeToForum('foskym-activity-graph.tooltip_position', 'foskym-activity-graph.tooltip_position')
+        ->serializeToForum('foskym-activity-graph.times_display_format', 'foskym-activity-graph.times_display_format')
 ];

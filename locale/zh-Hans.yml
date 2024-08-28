@@ -19,14 +19,16 @@ foskym-activity-graph:
         bottom: 底部
         left: 左侧
 
+      times_display_format: 次数显示格式
+      times_display_format_help: 用于显示活动图表中的次数，例如：“次”，“[count] 次”
+
     permissons:
       query-others-activity-graph: 查询其他用户活动图表
 
   forum:
     label:
       activity_graph: 活动图表
-      total_times: 这一年共 {total} 次
-      unit: 次
+      total_times: 这一年共 {total}
       name_map: cn # 标签语言. 可查询 https://echarts.apache.org/zh/option.html#calendar.dayLabel.nameMap
 
       categories:
@@ -40,3 +42,7 @@ foskym-activity-graph:
         polls_votes: 投票
         username_requests_username: 用户名修改请求
         username_requests_nickname: 昵称修改请求
+
+  lib:
+    defaults:
+      times_display_format: [count] 次
