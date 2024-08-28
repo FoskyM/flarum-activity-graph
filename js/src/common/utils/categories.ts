@@ -10,4 +10,5 @@ export const categories = [
   'username_requests_username',
   'username_requests_nickname',
   'best_answer_marked',
+  'badges_assigned'
 ];

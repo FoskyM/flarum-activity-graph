@@ -28,6 +28,7 @@ use Xypp\Store\PurchaseHistory;
 use FoF\Polls\Poll;
 use FoF\Polls\PollVote;
 use FoF\UserRequest\UsernameRequest;
+use V17Development\FlarumUserBadges\UserBadge\UserBadge;
 
 class ApiActivityGraphController implements RequestHandlerInterface
 {
@@ -68,6 +69,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'username_requests_username' => 'foskym-activity-graph.count_username_requests_username',
             'username_requests_nickname' => 'foskym-activity-graph.count_username_requests_nickname',
             'best_answer_marked' => 'foskym-activity-graph.count_best_answer_marked',
+            'badges_assigned' => 'foskym-activity-graph.count_badges_assigned',
         ];
 
         foreach ($settings as $category => $setting) {
@@ -104,6 +106,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'username_requests_username' => 'fof-username-request',
             'username_requests_nickname' => 'fof-username-request',
             'best_answer_marked' => 'fof-best-answer',
+            'badges_assigned' => 'v17development-user-badges',
         ];
 
         if (isset($extensionMap[$category]) && !$this->extensionManager->isEnabled($extensionMap[$category])) {
@@ -122,6 +125,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'username_requests_username' => UsernameRequest::class,
             'username_requests_nickname' => UsernameRequest::class,
             'best_answer_marked' => Discussion::class,
+            'badges_assigned' => UserBadge::class,
         ];
 
         $model = $modelMap[$category];
@@ -132,13 +136,22 @@ class ApiActivityGraphController implements RequestHandlerInterface
         } elseif ($category === 'best_answer_marked') {
             $query = $model::whereBetween('created_at', [$begin, $end])
                 ->where('best_answer_user_id', $user_id);
+        } elseif ($category === 'badges_assigned') {
+            $query = $model::whereBetween('assigned_at', [$begin, $end])
+                ->where('user_id', $user_id);
         } else {
             $query = $model::whereBetween('created_at', [$begin, $end])
                 ->where('user_id', $user_id);
         }
 
-        $query->select('created_at', DB::raw('COUNT(*) as total'))
-            ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
+        if ($category === 'badges_assigned') {
+            $query->select('assigned_at', DB::raw('COUNT(*) as total'))
+                ->groupBy(DB::raw('DATE_FORMAT(assigned_at, "%Y-%m-%d")'));
+        } else {
+            $query->select('created_at', DB::raw('COUNT(*) as total'))
+                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
+        }
+
 
         if ($category === 'comments') {
             $query->where('number', '>', 1);
@@ -154,7 +167,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
 
         $items->map(function ($item) use (&$total, &$temp, &$categories, $category) {
             $total += $item->total;
-            $date = date('Y-m-d', strtotime($item->created_at));
+            $date = date('Y-m-d', strtotime($item->created_at ?? $item->assigned_at));
             isset($temp[$date]) ?
                 $temp[$date] += $item->total :
                 $temp[$date] = $item->total;
