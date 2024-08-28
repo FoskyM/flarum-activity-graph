@@ -1,11 +1,12 @@
 {
     "name": "foskym/flarum-activity-graph",
-    "description": "Show an activity graph in user page",
+    "description": "Show an activity graph (heatmap) in user page",
     "keywords": [
         "flarum",
         "extension",
         "activity",
-        "graph"
+        "graph",
+        "heatmap"
     ],
     "type": "flarum-extension",
     "license": "MIT",
@@ -27,7 +28,7 @@
     },
     "extra": {
         "flarum-extension": {
-            "title": "Activity Graph",
+            "title": "Activity Graph (Heatmap)",
             "category": "",
             "icon": {
                 "name": "fas fa-chart-line",
