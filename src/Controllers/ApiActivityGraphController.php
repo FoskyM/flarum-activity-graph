@@ -29,6 +29,7 @@ use FoF\Polls\Poll;
 use FoF\Polls\PollVote;
 use FoF\UserRequest\UsernameRequest;
 use V17Development\FlarumUserBadges\UserBadge\UserBadge;
+use Malago\Achievements\AchievementUser;
 
 class ApiActivityGraphController implements RequestHandlerInterface
 {
@@ -70,6 +71,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'username_requests_nickname' => 'foskym-activity-graph.count_username_requests_nickname',
             'best_answer_marked' => 'foskym-activity-graph.count_best_answer_marked',
             'badges_assigned' => 'foskym-activity-graph.count_badges_assigned',
+            'achievements_achieved' => 'foskym-activity-graph.count_achievements_achieved',
         ];
 
         foreach ($settings as $category => $setting) {
@@ -107,6 +109,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'username_requests_nickname' => 'fof-username-request',
             'best_answer_marked' => 'fof-best-answer',
             'badges_assigned' => 'v17development-user-badges',
+            'achievements_achieved' => 'malago-achievements',
         ];
 
         if (isset($extensionMap[$category]) && !$this->extensionManager->isEnabled($extensionMap[$category])) {
@@ -126,6 +129,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'username_requests_nickname' => UsernameRequest::class,
             'best_answer_marked' => Discussion::class,
             'badges_assigned' => UserBadge::class,
+            'achievements_achieved' => AchievementUser::class,
         ];
 
         $model = $modelMap[$category];

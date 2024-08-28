@@ -13,6 +13,7 @@ foskym-activity-graph:
       count_username_requests_nickname: 昵称修改请求次数 (需要安装 fof/username-requests 和 flarum-nicknames)
       count_best_answer_marked: 被标记最佳答案次数 (需要安装 fof/best-answer)
       count_badges_assigned: 被授予徽章次数 (需要安装 v17development/flarum-user-badges)
+      count_achievements_achieved: 获得成就次数 (需要安装 malago/achievements)
 
       tooltip_position: 提示框位置
       tooltip_position_options:
@@ -49,6 +50,7 @@ foskym-activity-graph:
         username_requests_nickname: 昵称修改请求
         best_answer_marked: 最佳答案
         badges_assigned: 徽章授予
+        achievements_achieved: 成就达成
 
   lib:
     defaults:

@@ -43,6 +43,7 @@ return [
         ->serializeToForum('foskym-activity-graph.count_username_requests_nickname', 'foskym-activity-graph.count_username_requests_nickname', 'boolval')
         ->serializeToForum('foskym-activity-graph.count_best_answer_marked', 'foskym-activity-graph.count_best_answer_marked', 'boolval')
         ->serializeToForum('foskym-activity-graph.count_badges_assigned', 'foskym-activity-graph.count_badges_assigned', 'boolval')
+        ->serializeToForum('foskym-activity-graph.count_achievements_achieved', 'foskym-activity-graph.count_achievements_achieved', 'boolval')
 
         ->serializeToForum('foskym-activity-graph.tooltip_position', 'foskym-activity-graph.tooltip_position')
         ->serializeToForum('foskym-activity-graph.times_display_format', 'foskym-activity-graph.times_display_format')
