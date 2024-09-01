@@ -14,6 +14,7 @@ foskym-activity-graph:
       count_best_answer_marked: Count Best Answer Marked (requires fof/best-answer)
       count_badges_assigned: Count Badges Assigned (requires v17development/flarum-user-badges)
       count_achievements_achieved: Count Achievements Achieved (requires malago/achievements)
+      count_quest_done: Count Quests Done (requires xypp/forum-quests)
 
       tooltip_position: Tooltip Position
       tooltip_position_options:
@@ -51,6 +52,7 @@ foskym-activity-graph:
         best_answer_marked: Best Answer Marked
         badges_assigned: Badges Assigned
         achievements_achieved: Achievements Achieved
+        quest_done: Quests Done
 
   lib:
     defaults:

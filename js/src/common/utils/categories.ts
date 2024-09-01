@@ -12,4 +12,5 @@ export const categories = [
   'best_answer_marked',
   'badges_assigned',
   'achievements_achieved',
+  'quest_done'
 ];

@@ -22,6 +22,7 @@ use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\Extension\ExtensionManager;
 use Flarum\Post\CommentPost;
 use Flarum\Discussion\Discussion;
+use Flarum\Notification\Notification;
 use FoskyM\CustomLevels\Model\ExpLog;
 use Xypp\InviteUser\InvitedUser;
 use Xypp\Store\PurchaseHistory;
@@ -72,6 +73,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'best_answer_marked' => 'foskym-activity-graph.count_best_answer_marked',
             'badges_assigned' => 'foskym-activity-graph.count_badges_assigned',
             'achievements_achieved' => 'foskym-activity-graph.count_achievements_achieved',
+            'quest_done' => 'foskym-activity-graph.count_quest_done',
         ];
 
         foreach ($settings as $category => $setting) {
@@ -130,11 +132,12 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'best_answer_marked' => Discussion::class,
             'badges_assigned' => UserBadge::class,
             'achievements_achieved' => AchievementUser::class,
+            'quest_done' => Notification::where('type', 'quest_done')
         ];
 
         $model = $modelMap[$category];
 
-        if ($category === 'likes') {
+        if ($category === 'likes' || $category === 'quest_done') {
             $query = $model->whereBetween('created_at', [$begin, $end])
                 ->where('user_id', $user_id);
         } elseif ($category === 'best_answer_marked') {
