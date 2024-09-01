@@ -179,6 +179,7 @@ export default class AuthorizedPage extends UserPage {
     return (
       <div class="activity-graph-page">
         <h2>{app.translator.trans('foskym-activity-graph.forum.label.activity_graph')}</h2>
+        
         <div style="display: flex; justify-content: space-between; align-items: end;">
           <span>
             {app.translator.trans('foskym-activity-graph.forum.label.total_times', {
@@ -194,7 +195,7 @@ export default class AuthorizedPage extends UserPage {
             }}
           ></Select>
         </div>
-
+        {this.loading ? <LoadingIndicator /> : ''}
         <div id="activity-graph" style="width:100%; height:150px;"></div>
       </div>
     );
