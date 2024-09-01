@@ -23,24 +23,58 @@ use Flarum\Extension\ExtensionManager;
 use Flarum\Post\CommentPost;
 use Flarum\Discussion\Discussion;
 use Flarum\Notification\Notification;
-use FoskyM\CustomLevels\Model\ExpLog;
-use Xypp\InviteUser\InvitedUser;
-use Xypp\Store\PurchaseHistory;
-use FoF\Polls\Poll;
-use FoF\Polls\PollVote;
 use FoF\UserRequest\UsernameRequest;
-use V17Development\FlarumUserBadges\UserBadge\UserBadge;
-use Malago\Achievements\AchievementUser;
 
 class ApiActivityGraphController implements RequestHandlerInterface
 {
     protected $settings;
     protected $extensionManager;
 
+    private $categories = ['comments', 'discussions', 'likes', 'custom_levels_exp_logs', 'invite_user_invites', 'store_purchases', 'polls_create_polls', 'polls_votes', 'username_requests_username', 'username_requests_nickname', 'best_answer_marked', 'badges_assigned', 'achievements_achieved', 'quest_done'];
+
+    private $extensionMap = [
+        'likes' => 'flarum-likes',
+        'custom_levels_exp_logs' => 'foskym-custom-levels',
+        'invite_user_invites' => 'xypp-invite-user',
+        'store_purchases' => 'xypp-store',
+        'polls_create_polls' => 'fof-polls',
+        'polls_votes' => 'fof-polls',
+        'username_requests_username' => 'fof-username-request',
+        'username_requests_nickname' => 'fof-username-request',
+        'best_answer_marked' => 'fof-best-answer',
+        'badges_assigned' => 'v17development-user-badges',
+        'achievements_achieved' => 'malago-achievements',
+    ];
+
+    private $modelMap;
+
     public function __construct(SettingsRepositoryInterface $settings, ExtensionManager $extensionManager)
     {
         $this->settings = $settings;
         $this->extensionManager = $extensionManager;
+
+        $this->modelMap = [
+            'comments' => CommentPost::where('number', '>', 1),
+            'discussions' => Discussion::class,
+            'likes' => DB::table('post_likes'),
+            'custom_levels_exp_logs' => \FoskyM\CustomLevels\Model\ExpLog::class,
+            'invite_user_invites' => \Xypp\InviteUser\InvitedUser::class,
+            'store_purchases' => \Xypp\Store\PurchaseHistory::class,
+            'polls_create_polls' => \FoF\Polls\Poll::class,
+            'polls_votes' => \FoF\Polls\PollVote::class,
+            'username_requests_username' => UsernameRequest::where('for_nickname', 0),
+            'username_requests_nickname' => UsernameRequest::where('for_nickname', 1),
+            'best_answer_marked' => [
+                'class' => Discussion::class,
+                'user_id' => 'best_answer_user_id'
+            ],
+            'badges_assigned' => [
+                'class' => \V17Development\FlarumUserBadges\UserBadge\UserBadge::class,
+                'created_at' => 'assigned_at'
+            ],
+            'achievements_achieved' => \Malago\Achievements\AchievementUser::class,
+            'quest_done' => Notification::where('type', 'quest_done')
+        ];
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -50,135 +84,67 @@ class ApiActivityGraphController implements RequestHandlerInterface
 
         $params = $request->getQueryParams();
         $user_id = Arr::get($params, 'user_id', $actor->id);
-
         $year = Arr::get($params, 'year', date('Y'));
+
         $begin = $year . '-01-01';
         $end = ($year + 1) . '-01-01';
 
         $total = 0;
         $temp = [];
-        $categories = [];
 
-        $settings = [
-            'comments' => 'foskym-activity-graph.count_comments',
-            'discussions' => 'foskym-activity-graph.count_discussions',
-            'likes' => 'foskym-activity-graph.count_likes',
-            'custom_levels_exp_logs' => 'foskym-activity-graph.count_custom_levels_exp_logs',
-            'invite_user_invites' => 'foskym-activity-graph.count_invite_user_invites',
-            'store_purchases' => 'foskym-activity-graph.count_store_purchases',
-            'polls_create_polls' => 'foskym-activity-graph.count_polls_create_polls',
-            'polls_votes' => 'foskym-activity-graph.count_polls_votes',
-            'username_requests_username' => 'foskym-activity-graph.count_username_requests_username',
-            'username_requests_nickname' => 'foskym-activity-graph.count_username_requests_nickname',
-            'best_answer_marked' => 'foskym-activity-graph.count_best_answer_marked',
-            'badges_assigned' => 'foskym-activity-graph.count_badges_assigned',
-            'achievements_achieved' => 'foskym-activity-graph.count_achievements_achieved',
-            'quest_done' => 'foskym-activity-graph.count_quest_done',
-        ];
-
-        foreach ($settings as $category => $setting) {
-            if ($this->settings->get($setting)) {
-                $this->processCategory($category, $begin, $end, $user_id, $total, $temp, $categories);
+        foreach ($this->categories as $category) {
+            if ($this->settings->get('foskym-activity-graph.count_' . $category)) {
+                $this->processCategory($category, $begin, $end, $user_id, $total, $temp);
             }
         }
 
-        $results = [];
-
-        foreach ($temp as $key => $value) {
-            $results[] = [
-                $key,
-                $value
-            ];
-        }
+        $results = array_map(fn($key, $value) => [$key, $value], array_keys($temp), $temp);
 
         return new JsonResponse([
             'total' => $total,
             'data' => $results,
-            'categories' => $categories
+            'categories' => $this->categories
         ]);
     }
 
-    private function processCategory($category, $begin, $end, $user_id, &$total, &$temp, &$categories)
+    private function processCategory($category, $begin, $end, $user_id, &$total, &$temp)
     {
-        $extensionMap = [
-            'likes' => 'flarum-likes',
-            'custom_levels_exp_logs' => 'foskym-custom-levels',
-            'invite_user_invites' => 'xypp-invite-user',
-            'store_purchases' => 'xypp-store',
-            'polls_create_polls' => 'fof-polls',
-            'polls_votes' => 'fof-polls',
-            'username_requests_username' => 'fof-username-request',
-            'username_requests_nickname' => 'fof-username-request',
-            'best_answer_marked' => 'fof-best-answer',
-            'badges_assigned' => 'v17development-user-badges',
-            'achievements_achieved' => 'malago-achievements',
-        ];
-
-        if (isset($extensionMap[$category]) && !$this->extensionManager->isEnabled($extensionMap[$category])) {
+        if (isset($this->extensionMap[$category]) && !$this->extensionManager->isEnabled($this->extensionMap[$category])) {
             return;
         }
 
-        $modelMap = [
-            'comments' => CommentPost::class,
-            'discussions' => Discussion::class,
-            'likes' => DB::table('post_likes'),
-            'custom_levels_exp_logs' => ExpLog::class,
-            'invite_user_invites' => InvitedUser::class,
-            'store_purchases' => PurchaseHistory::class,
-            'polls_create_polls' => Poll::class,
-            'polls_votes' => PollVote::class,
-            'username_requests_username' => UsernameRequest::class,
-            'username_requests_nickname' => UsernameRequest::class,
-            'best_answer_marked' => Discussion::class,
-            'badges_assigned' => UserBadge::class,
-            'achievements_achieved' => AchievementUser::class,
-            'quest_done' => Notification::where('type', 'quest_done')
-        ];
+        $items = $this->getCategoryData($category, $begin, $end, $user_id);
 
-        $model = $modelMap[$category];
-
-        if ($category === 'likes' || $category === 'quest_done') {
-            $query = $model->whereBetween('created_at', [$begin, $end])
-                ->where('user_id', $user_id);
-        } elseif ($category === 'best_answer_marked') {
-            $query = $model::whereBetween('created_at', [$begin, $end])
-                ->where('best_answer_user_id', $user_id);
-        } elseif ($category === 'badges_assigned') {
-            $query = $model::whereBetween('assigned_at', [$begin, $end])
-                ->where('user_id', $user_id);
-        } else {
-            $query = $model::whereBetween('created_at', [$begin, $end])
-                ->where('user_id', $user_id);
-        }
-
-        if ($category === 'badges_assigned') {
-            $query->select('assigned_at', DB::raw('COUNT(*) as total'))
-                ->groupBy(DB::raw('DATE_FORMAT(assigned_at, "%Y-%m-%d")'));
-        } else {
-            $query->select('created_at', DB::raw('COUNT(*) as total'))
-                ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'));
-        }
-
-
-        if ($category === 'comments') {
-            $query->where('number', '>', 1);
-        }
-
-        if ($category === 'username_requests_username') {
-            $query->where('for_nickname', 0);
-        } elseif ($category === 'username_requests_nickname') {
-            $query->where('for_nickname', 1);
-        }
-
-        $items = $query->get();
-
-        $items->map(function ($item) use (&$total, &$temp, &$categories, $category) {
+        foreach ($items as $item) {
             $total += $item->total;
-            $date = date('Y-m-d', strtotime($item->created_at ?? $item->assigned_at));
-            isset($temp[$date]) ?
-                $temp[$date] += $item->total :
-                $temp[$date] = $item->total;
-            $categories[$category][$date] = $item->total;
-        });
+            $date = date('Y-m-d', strtotime($item->created_at));
+            $temp[$date] = ($temp[$date] ?? 0) + $item->total;
+        }
+    }
+
+    private function getCategoryData($category, $begin, $end, $user_id)
+    {
+        $model = $this->modelMap[$category];
+        $column_user_id = 'user_id';
+        $column_created_at = 'created_at';
+
+        if (is_array($model) && isset($model['class'])) {
+            $column_user_id = $model['user_id'] ?? $column_user_id;
+            $column_created_at = $model['created_at'] ?? $column_created_at;
+            $model = $model['class'];
+        }
+
+        $query = is_object($model) ? $model : $model::query();
+
+        $query->whereBetween($column_created_at, [$begin, $end])
+            ->where($column_user_id, $user_id)
+            ->select($column_created_at, DB::raw('COUNT(*) as total'))
+            ->groupBy(DB::raw('DATE_FORMAT(' . $column_created_at . ', "%Y-%m-%d")'));
+
+        try {
+            return $query->get();
+        } catch (\Exception $e) {
+            return collect();
+        }
     }
 }
