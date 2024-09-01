@@ -3,7 +3,7 @@ import extractText from 'flarum/common/utils/extractText';
 import { categories } from '../common/utils/categories';
 
 app.initializers.add('foskym/flarum-activity-graph', () => {
-  let options = {};
+  let options: any = {};
   ['top', 'right', 'bottom', 'left'].map((position) => {
     options[position] = app.translator.trans('foskym-activity-graph.admin.settings.tooltip_position_options.' + position);
   });

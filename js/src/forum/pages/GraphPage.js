@@ -5,16 +5,16 @@ import Select from 'flarum/common/components/Select';
 import extractText from 'flarum/common/utils/extractText';
 import { categories } from '../../common/utils/categories';
 
-export default class AuthorizedPage extends UserPage {
+export default class GraphPage extends UserPage {
   loading = true;
   year = new Date().getFullYear().toString();
   graphData = null;
   categories = null;
   total = 0;
-  graph = null;
-  resize_handler_bound = false;
-  dark_mode_handler_bound = false;
-  recent_mode = 'light';
+  chart = null;
+  resizeHandlerBound = false;
+  darkModeHandlerBound = false;
+  recentMode = 'light';
 
   oninit(vnode) {
     super.oninit(vnode);
@@ -25,20 +25,18 @@ export default class AuthorizedPage extends UserPage {
   loadGraph() {
     this.loading = true;
 
-    app
-      .request({
-        method: 'GET',
-        url: app.forum.attribute('apiUrl') + '/activity-graph',
-        params: { user_id: this.user.id(), year: this.year },
-      })
-      .then((result) => {
-        this.loading = false;
-        this.graphData = result.data;
-        this.categories = result.categories;
-        this.total = result.total;
-        m.redraw();
-        this.renderGraph();
-      });
+    app.request({
+      method: 'GET',
+      url: `${app.forum.attribute('apiUrl')}/activity-graph`,
+      params: { user_id: this.user.id(), year: this.year },
+    }).then((result) => {
+      this.loading = false;
+      this.graphData = result.data;
+      this.categories = result.categories;
+      this.total = result.total;
+      m.redraw();
+      this.renderGraph();
+    });
   }
 
   renderGraph() {
@@ -54,138 +52,112 @@ export default class AuthorizedPage extends UserPage {
       const root = document.documentElement;
       const colorScheme = getComputedStyle(root).getPropertyValue('--color-scheme').trim();
       const bodyBg = getComputedStyle(root).getPropertyValue('--body-bg').trim();
-      console.log(colorScheme, bodyBg);
-      if (colorScheme != this.recent_mode) {
-        this.recent_mode = colorScheme;
-        if (this.chart) {
-          this.chart.dispose();
-          this.chart = null;
-        }
-        this.chart = window.echarts.init(graph_container, colorScheme == 'dark' ? 'dark' : 'light');
+
+      if (colorScheme !== this.recentMode) {
+        this.recentMode = colorScheme;
+        this.chart?.dispose();
+        this.chart = window.echarts.init(graph_container, colorScheme === 'dark' ? 'dark' : 'light');
       } else {
         this.chart = this.chart || window.echarts.init(graph_container);
       }
-      const that = this;
-      this.chart.setOption({
-        backgroundColor: bodyBg,
-        tooltip: {
-          position: app.forum.attribute('foskym-activity-graph.tooltip_position') || 'top',
-          className: 'foskym-activity-graph-tooltip',
-          formatter: function (e) {
-            let date = e.data[0];
-            let total = e.data[1];
-            let format =
-              app.forum.attribute('foskym-activity-graph.times_display_format') ||
-              extractText(app.translator.trans('foskym-activity-graph.lib.defaults.times_display_format'));
-            let html =
-              '<p>' +
-              e.marker +
-              date.substring(5) +
-              ' <b>' +
-              (format.indexOf('[count]') != -1 ? format.replace('[count]', total) : total + ' ' + format) +
-              '</b></p>';
-              categories.forEach((category) => {
-              if (app.forum.attribute('foskym-activity-graph.count_' + category) == false) return;
-              if (that.categories[category] && that.categories[category][date]) {
-                html +=
-                  '<p><small>' +
-                  app.translator.trans('foskym-activity-graph.forum.label.categories.' + category) +
-                  ' <b>' +
-                  (format.indexOf('[count]') != -1
-                    ? format.replace('[count]', that.categories[category][date])
-                    : that.categories[category][date] + ' ' + format) +
-                  '</b></small></p>';
-              }
-            });
-            return html;
-          },
-        },
-        visualMap: {
-          show: !1,
-          min: 0,
-          max: 300,
-          calculable: !0,
-          orient: 'horizontal',
-          left: 'center',
-          top: 'top',
-          inRange: {
-            color: ['#75ca67', '#23b20c', '#b99f11', '#b81111', '#6c0b0b', '#000000'],
-          },
-        },
-        calendar: [
-          {
-            range: this.year,
-            cellSize: ['auto', 'auto'],
-            left: 50,
-            top: 30,
-            splitLine: {
-              lineStyle: {
-                color: '#777',
-              },
-            },
-            dayLabel: {
-              nameMap: app.translator.trans('foskym-activity-graph.forum.label.name_map')[0],
-              firstDay: 1,
-            },
-            monthLabel: {
-              nameMap: app.translator.trans('foskym-activity-graph.forum.label.name_map')[0],
-            },
-            yearLabel: {
-              show: !0,
-            },
-          },
-        ],
-        series: [
-          {
-            type: 'heatmap',
-            coordinateSystem: 'calendar',
-            calendarIndex: 0,
-            data: this.graphData,
-          },
-        ],
-      });
 
-      if (!this.resize_handler_bound) {
-        window.addEventListener('resize', () => {
-          this.chart.resize();
-        });
-        this.resize_handler_bound = true;
+      this.chart.setOption(this.getChartOptions(bodyBg));
+
+      if (!this.resizeHandlerBound) {
+        window.addEventListener('resize', () => this.chart.resize());
+        this.resizeHandlerBound = true;
       }
 
-      if (!this.dark_mode_handler_bound) {
-        if (flarum.extensions['fof-nightmode']) {
-          document.addEventListener('fofnightmodechange', (event) => {
-            this.renderGraph();
-          });
-        }
-        this.dark_mode_handler_bound = true;
+      if (!this.darkModeHandlerBound && flarum.extensions['fof-nightmode']) {
+        document.addEventListener('fofnightmodechange', () => this.renderGraph());
+        this.darkModeHandlerBound = true;
       }
     }, 50);
   }
 
-  content() {
-    let options = {};
-    let current_year = new Date().getFullYear().toString();
-    let from_year = app.forum.attribute('foskym-activity-graph.from_year') || current_year;
-    if (from_year > current_year) from_year = current_year;
-    for (let i = parseInt(from_year); i <= parseInt(current_year); i++) {
-      options[i.toString()] = i.toString();
-    }
+  getChartOptions(bodyBg) {
+    return {
+      backgroundColor: bodyBg,
+      tooltip: {
+        position: app.forum.attribute('foskym-activity-graph.tooltip_position') || 'top',
+        className: 'foskym-activity-graph-tooltip',
+        formatter: (e) => this.formatTooltip(e),
+      },
+      visualMap: {
+        show: false,
+        min: 0,
+        max: 300,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        top: 'top',
+        inRange: {
+          color: ['#75ca67', '#23b20c', '#b99f11', '#b81111', '#6c0b0b', '#000000'],
+        },
+      },
+      calendar: [{
+        range: this.year,
+        cellSize: ['auto', 'auto'],
+        left: 50,
+        top: 30,
+        splitLine: {
+          lineStyle: {
+            color: '#777',
+          },
+        },
+        dayLabel: {
+          nameMap: app.translator.trans('foskym-activity-graph.forum.label.name_map')[0],
+          firstDay: 1,
+        },
+        monthLabel: {
+          nameMap: app.translator.trans('foskym-activity-graph.forum.label.name_map')[0],
+        },
+        yearLabel: {
+          show: true,
+        },
+      }],
+      series: [{
+        type: 'heatmap',
+        coordinateSystem: 'calendar',
+        calendarIndex: 0,
+        data: this.graphData,
+      }],
+    };
+  }
 
-    let format =
-      app.forum.attribute('foskym-activity-graph.times_display_format') ||
+  formatTooltip(e) {
+    let date = e.data[0];
+    let total = e.data[1];
+    let format = app.forum.attribute('foskym-activity-graph.times_display_format') ||
       extractText(app.translator.trans('foskym-activity-graph.lib.defaults.times_display_format'));
+    let html = `<p>${e.marker}${date.substring(5)} <b>${format.includes('[count]') ? format.replace('[count]', total) : `${total} ${format}`}</b></p>`;
+    categories.forEach((category) => {
+      if (app.forum.attribute(`foskym-activity-graph.count_${category}`) === false) return;
+      if (this.categories[category] && this.categories[category][date]) {
+        html += `<p><small>${app.translator.trans(`foskym-activity-graph.forum.label.categories.${category}`)} <b>${format.includes('[count]') ? format.replace('[count]', this.categories[category][date]) : `${this.categories[category][date]} ${format}`}</b></small></p>`;
+      }
+    });
+    return html;
+  }
+
+  content() {
+    const currentYear = new Date().getFullYear().toString();
+    let fromYear = app.forum.attribute('foskym-activity-graph.from_year') || currentYear;
+    fromYear = fromYear > currentYear ? currentYear : fromYear;
+
+    const options = Array.from({ length: currentYear - fromYear + 1 }, (_, i) => (parseInt(fromYear) + i).toString())
+      .reduce((acc, year) => ({ ...acc, [year]: year }), {});
+
+    const format = app.forum.attribute('foskym-activity-graph.times_display_format') ||
+      extractText(app.translator.trans('foskym-activity-graph.lib.defaults.times_display_format'));
+
+    const totalTimes = format.includes('[count]') ? format.replace('[count]', this.total) : `${this.total} ${format}`;
 
     return (
       <div class="activity-graph-page">
         <h2>{app.translator.trans('foskym-activity-graph.forum.label.activity_graph')}</h2>
-        
         <div style="display: flex; justify-content: space-between; align-items: end;">
-          <span>
-            {app.translator.trans('foskym-activity-graph.forum.label.total_times', {
-              total: format.indexOf('[count]') != -1 ? format.replace('[count]', this.total) : this.total + ' ' + format,
-            })}
-          </span>
+          <span>{app.translator.trans('foskym-activity-graph.forum.label.total_times', { total: totalTimes })}</span>
           <Select
             options={options}
             value={this.year}
@@ -193,9 +165,9 @@ export default class AuthorizedPage extends UserPage {
               this.year = value;
               this.loadGraph();
             }}
-          ></Select>
+          />
         </div>
-        {this.loading ? <LoadingIndicator /> : ''}
+        {this.loading && <LoadingIndicator />}
         <div id="activity-graph" style="width:100%; height:150px;"></div>
       </div>
     );

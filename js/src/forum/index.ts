@@ -13,7 +13,7 @@ app.initializers.add('foskym/flarum-activity-graph', () => {
       'activity-graph',
       LinkButton.component(
         {
-          href: app.route('user.activity-graph', { username: this.user.username() }),
+          href: app.route('user.activity-graph', { username: this.user?.username() }),
           icon: 'fas fa-chart-line',
         },
         [
