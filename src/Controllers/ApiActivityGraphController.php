@@ -91,10 +91,11 @@ class ApiActivityGraphController implements RequestHandlerInterface
 
         $total = 0;
         $temp = [];
+        $categories = [];
 
         foreach ($this->categories as $category) {
             if ($this->settings->get('foskym-activity-graph.count_' . $category)) {
-                $this->processCategory($category, $begin, $end, $user_id, $total, $temp);
+                $this->processCategory($category, $begin, $end, $user_id, $total, $temp, $categories);
             }
         }
 
@@ -103,11 +104,11 @@ class ApiActivityGraphController implements RequestHandlerInterface
         return new JsonResponse([
             'total' => $total,
             'data' => $results,
-            'categories' => $this->categories
+            'categories' => $categories
         ]);
     }
 
-    private function processCategory($category, $begin, $end, $user_id, &$total, &$temp)
+    private function processCategory($category, $begin, $end, $user_id, &$total, &$temp, &$categories)
     {
         if (isset($this->extensionMap[$category]) && !$this->extensionManager->isEnabled($this->extensionMap[$category])) {
             return;
@@ -119,6 +120,7 @@ class ApiActivityGraphController implements RequestHandlerInterface
             $total += $item->total;
             $date = date('Y-m-d', strtotime($item->created_at));
             $temp[$date] = ($temp[$date] ?? 0) + $item->total;
+            $categories[$category][$date] = $item->total;
         }
     }
 
