@@ -62,8 +62,14 @@ class ApiActivityGraphController implements RequestHandlerInterface
             'store_purchases' => \Xypp\Store\PurchaseHistory::class,
             'polls_create_polls' => \FoF\Polls\Poll::class,
             'polls_votes' => \FoF\Polls\PollVote::class,
-            'username_requests_username' => UsernameRequest::where('for_nickname', 0),
-            'username_requests_nickname' => UsernameRequest::where('for_nickname', 1),
+            'username_requests_username' => [
+                'class' => UsernameRequest::class,
+                'condition' => ['for_username' => 0]
+            ],
+            'username_requests_nickname' => [
+                'class' => UsernameRequest::class,
+                'condition' => ['for_nickname' => 1]
+            ],
             'best_answer_marked' => [
                 'class' => Discussion::class,
                 'user_id' => 'best_answer_user_id'
@@ -129,14 +135,20 @@ class ApiActivityGraphController implements RequestHandlerInterface
         $model = $this->modelMap[$category];
         $column_user_id = 'user_id';
         $column_created_at = 'created_at';
+        $condition = [];
 
         if (is_array($model) && isset($model['class'])) {
+            $condition = $model['condition'] ?? $condition;
             $column_user_id = $model['user_id'] ?? $column_user_id;
             $column_created_at = $model['created_at'] ?? $column_created_at;
             $model = $model['class'];
         }
 
         $query = is_object($model) ? $model : $model::query();
+
+        foreach ($condition as $key => $value) {
+            $query->where($key, $value);
+        }
 
         $query->whereBetween($column_created_at, [$begin, $end])
             ->where($column_user_id, $user_id)
